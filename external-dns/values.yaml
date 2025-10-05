@@ -1,0 +1,56 @@
+provider: aws
+aws:
+  zoneType: public
+  region: eu-west-1
+
+txtOwnerId: external-dns
+policy: upsert-only
+sources:
+  - service
+  - ingress
+
+domainFilters:
+  - geekops.dev # Add your actual domain here
+
+logLevel: debug
+interval: 1m
+triggerLoopOnEvent: false
+registry: txt
+txtPrefix: external-dns-
+
+# Enhanced RBAC for kubeadm clusters
+rbac:
+  create: true
+  additionalPermissions:
+    - apiGroups: [""]
+      resources: ["nodes"]
+      verbs: ["list", "watch"]
+    - apiGroups: [""]
+      resources: ["pods"]
+      verbs: ["get", "list", "watch"]
+
+serviceAccount:
+  create: true
+  # Uncomment if using IAM roles for service accounts (IRSA)
+  # annotations:
+  #   eks.amazonaws.com/role-arn: arn:aws:iam::ACCOUNT:role/external-dns
+
+# Add tolerations for control plane nodes if needed
+tolerations: []
+
+# Resource limits to prevent OOM kills
+resources:
+  limits:
+    memory: 256Mi
+    cpu: 250m
+  requests:
+    memory: 128Mi
+    cpu: 100m
+
+# Using node IAM role - no additional credentials needed
+# The pod will inherit permissions from the node's IAM role
+
+# Set AWS region
+env:
+  - name: AWS_DEFAULT_REGION
+    value: "eu-west-1"

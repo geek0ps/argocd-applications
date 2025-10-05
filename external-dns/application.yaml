@@ -16,7 +16,6 @@ spec:
         provider: aws
         aws:
           zoneType: public
-          # Uncomment and set if using specific AWS region
           region: eu-west-1
         txtOwnerId: external-dns
         policy: upsert-only
@@ -58,6 +57,11 @@ spec:
           requests:
             memory: 128Mi
             cpu: 100m
+        
+        # Set AWS region
+        env:
+          - name: AWS_DEFAULT_REGION
+            value: "eu-west-1"
         
   destination:
     server: https://kubernetes.default.svc
