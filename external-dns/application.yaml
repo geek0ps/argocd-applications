@@ -1,0 +1,46 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: external-dns
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://kubernetes-sigs.github.io/external-dns/
+    chart: external-dns
+    targetRevision: 1.14.3
+    helm:
+      values: |
+        provider: aws
+        aws:
+          zoneType: public
+        txtOwnerId: external-dns
+        policy: upsert-only
+        sources:
+          - service
+          - ingress
+        domainFilters: []
+        logLevel: info
+        interval: 1m
+        triggerLoopOnEvent: false
+        registry: txt
+        txtPrefix: external-dns-
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: external-dns
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
