@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: oci://us-docker.pkg.dev/online-boutique-ci/charts
     chart: onlineboutique
-    targetRevision: "*"
+    targetRevision: "0.10.0"
     helm:
       values: |
         # Online Boutique configuration

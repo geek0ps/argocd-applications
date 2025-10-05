@@ -1,0 +1,78 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: onlineboutique-git
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/GoogleCloudPlatform/microservices-demo
+    path: kustomize
+    targetRevision: main
+    kustomize:
+      patches:
+        - target:
+            kind: Service
+            name: frontend-external
+          patch: |
+            - op: replace
+              path: /spec/type
+              value: LoadBalancer
+        - target:
+            kind: Deployment
+            name: frontend
+          patch: |
+            - op: add
+              path: /spec/template/spec/containers/0/resources
+              value:
+                requests:
+                  cpu: 100m
+                  memory: 64Mi
+                limits:
+                  cpu: 200m
+                  memory: 128Mi
+        - target:
+            kind: Deployment
+            name: cartservice
+          patch: |
+            - op: add
+              path: /spec/template/spec/containers/0/resources
+              value:
+                requests:
+                  cpu: 200m
+                  memory: 64Mi
+                limits:
+                  cpu: 300m
+                  memory: 128Mi
+        - target:
+            kind: Deployment
+            name: recommendationservice
+          patch: |
+            - op: add
+              path: /spec/template/spec/containers/0/resources
+              value:
+                requests:
+                  cpu: 100m
+                  memory: 220Mi
+                limits:
+                  cpu: 200m
+                  memory: 450Mi
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: onlineboutique
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
